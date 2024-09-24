@@ -171,7 +171,7 @@ class AccountInvoice(models.Model):
             ):
 
                 inv.assigned_sequence = fiscal_type.assigned_sequence
-                inv.fiscal_position_id = fiscal_type.with_company(inv.company_id).fiscal_position_id
+                inv.fiscal_position_id = fiscal_type.fiscal_position_id
 
                 domain = [
                     ("company_id", "=", inv.company_id.id),
@@ -343,7 +343,7 @@ class AccountInvoice(models.Model):
                 self.partner_id = self.company_id.partner_id
 
             fiscal_type = self.fiscal_type_id
-            fiscal_type_journal = fiscal_type.with_company(self.company_id).journal_id
+            fiscal_type_journal = fiscal_type.journal_id
             if fiscal_type_journal and fiscal_type_journal != self.journal_id:
                 self.journal_id = fiscal_type_journal
 
@@ -395,26 +395,6 @@ class AccountInvoice(models.Model):
         for inv in self:
 
             if inv.is_l10n_do_fiscal_invoice and inv.is_invoice():
-                fiscal_partner_ids = [inv.partner_id.id] + \
-                    inv.partner_id.child_ids.ids + \
-                    [inv.partner_id.parent_id.id if inv.partner_id.parent_id else 0]
-
-                repeated_ncf = self.env["account.move"].search_count([
-                    ("ref", "=", inv.ref), 
-                    ('id', '!=', inv.id),
-                    ('partner_id', 'in', fiscal_partner_ids),
-                    ('state', '=', 'posted'),
-                    ('is_l10n_do_fiscal_invoice', '=', True),
-                    ('move_type', '=', inv.move_type),
-                    ('company_id', '=', inv.company_id.id)
-                ])
-
-                if repeated_ncf > 0:
-                    raise UserError(
-                        _("The NCF number {} is already in use for this {}.").format(
-                            inv.ref, _('customer') if inv.move_type in ('out_invoice', 'out_refund') else _('vendor'))
-                    )
-
                 if inv.amount_total == 0:
                     raise UserError(
                         _(
@@ -437,7 +417,6 @@ class AccountInvoice(models.Model):
                     raise ValidationError(_("There is not active Fiscal Sequence for this type of document."))
 
                 if inv.move_type == "out_invoice":
-                    
                     if not inv.partner_id.sale_fiscal_type_id:
                         inv.partner_id.sale_fiscal_type_id = inv.fiscal_type_id
 
@@ -445,7 +424,6 @@ class AccountInvoice(models.Model):
 
                     if not inv.partner_id.purchase_fiscal_type_id:
                         inv.partner_id.purchase_fiscal_type_id = inv.fiscal_type_id
-                    
                     if not inv.partner_id.expense_type:
                         inv.partner_id.expense_type = inv.expense_type
 
@@ -484,8 +462,8 @@ class AccountInvoice(models.Model):
                     )
 
                     origin_invoice = self.env['account.move'].search([
-                        ('partner_id', 'in', fiscal_partner_ids),
                         ('ref', '=', inv.origin_out), 
+                        ('partner_id', '=', inv.partner_id.id),
                         ('state', '=', 'posted'),
                         ('is_l10n_do_fiscal_invoice', '=', True),
                         ('move_type', '=', 'in_invoice' if inv.move_type == 'in_refund' else 'out_invoice')
@@ -645,12 +623,11 @@ class AccountInvoice(models.Model):
         res = super(AccountInvoice, self).create(vals_list)
         
         fiscal_invoices = res.filtered(
-            lambda i: i.is_l10n_do_fiscal_invoice and not \
-            i.fiscal_type_id and i.is_invoice()
+            lambda i: i.is_l10n_do_fiscal_invoice and not i.fiscal_type_id and i.is_invoice()
         )
         for fiscal_invoice in fiscal_invoices:
             fiscal_invoice._onchange_partner_id()
-            fiscal_invoice.filtered(lambda i: i.move_type not in ['in_refund']).write({
+            fiscal_invoice.write({
                 'ref': '', 
                 'payment_reference': fiscal_invoice.ref
             })

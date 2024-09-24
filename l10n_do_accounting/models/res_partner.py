@@ -1,11 +1,30 @@
 from odoo import models, fields, api, _
+import logging
+import json
+import re
+_logger = logging.getLogger(__name__)
 
+try:
+    from stdnum.do import rnc, cedula
+except (ImportError, IOError) as err:
+    _logger.debug(str(err))
 
+    
 class Partner(models.Model):
     _inherit = "res.partner"
 
+    
+    @api.depends('sale_fiscal_type_id')
+    def _compute_is_fiscal_info_required(self):
+        for rec in self:
+            if rec.sale_fiscal_type_id.prefix in ['B01', 'B14', 'B15']:
+                rec.is_fiscal_info_required = True
+            else:
+                rec.is_fiscal_info_required = False
+
+
     sale_fiscal_type_id = fields.Many2one(
-        comodel_name="account.fiscal.type",
+        "account.fiscal.type",
         string="Sale Fiscal Type",
         domain=[("type", "=", "out_invoice")],
         compute='_compute_sale_fiscal_type_id',
@@ -13,13 +32,43 @@ class Partner(models.Model):
         index=True,
         store=True,
     )
+
+    sale_fiscal_type_list = [{
+        "id": "final",
+        "name": "Consumo",
+        "ticket_label": "Consumo",
+        "is_default": True
+    }, {
+        "id": "fiscal",
+        "name": "Crédito Fiscal"
+    }, {
+        "id": "gov",
+        "name": "Gubernamental"
+    }, {
+        "id": "special",
+        "name": "Regímenes Especiales"
+    }, {
+        "id": "unico",
+        "name": "Único Ingreso"
+    }, {
+        "id": "export",
+        "name": "Exportaciones"
+    }]
+
+    sale_fiscal_type_vat = {
+        "rnc": ["fiscal", "gov", "special"],
+        "ced": ["final", "fiscal"],
+        "other": ["final"],
+        "no_vat": ["final", "unico", "export"]
+    }
+
     purchase_fiscal_type_id = fields.Many2one(
-        comodel_name="account.fiscal.type",
+        "account.fiscal.type",
         string="Purchase Fiscal Type",
         domain=[("type", "=", "in_invoice")],
     )
     expense_type = fields.Selection(
-        selection=[
+        [
             ("01", "01 - Gastos de Personal"),
             ("02", "02 - Gastos por Trabajo, Suministros y Servicios"),
             ("03", "03 - Arrendamientos"),
@@ -34,9 +83,11 @@ class Partner(models.Model):
         ],
         string="Expense Type",
     )
+
     is_fiscal_info_required = fields.Boolean(
         compute="_compute_is_fiscal_info_required"
     )
+
     country_id = fields.Many2one(
         comodel_name='res.country',
         string='Country',
@@ -44,66 +95,47 @@ class Partner(models.Model):
         default=lambda self: self.env.ref('base.do')
     )
 
-    @api.depends('sale_fiscal_type_id')
-    def _compute_is_fiscal_info_required(self):
-        for rec in self:
-            rec.is_fiscal_info_required = rec.sale_fiscal_type_id.prefix in ['B01', 'B14', 'B15']
-
     def _get_fiscal_type_domain(self, prefix):
-        return self.env['account.fiscal.type'].search([
-            ('type', '=', 'out_invoice'),
-            ('prefix', '=', prefix),
-        ], limit=1)
+        fiscal_type = self.env[
+            'account.fiscal.type'].search([
+                ('type', '=', 'out_invoice'),
+                ('prefix', '=', prefix),
+            ], limit=1)
+        
+        return fiscal_type
 
+    
     @api.depends('vat', 'country_id', 'name')
     def _compute_sale_fiscal_type_id(self):
-        for partner in self.sudo():
-            vat = partner.name if partner.name and \
-                isinstance(partner.name, str) and \
-                partner.name.isdigit() else partner.vat
+        """ Compute the type of partner depending on soft decisions"""
 
-            is_dominican_partner = partner.country_id == self.env.ref('base.do')
+        for partner in self:
+            vat = str(partner.vat) if partner.vat else False
+            is_dominican_partner = bool(partner.country_id == self.env.ref('base.do'))
 
-            new_fiscal_type = self._determine_fiscal_type(partner, vat, is_dominican_partner)
+            if not is_dominican_partner:
+                partner.sale_fiscal_type_id = self._get_fiscal_type_domain('B16')
 
-            partner.sale_fiscal_type_id = new_fiscal_type
-            partner.sudo().set_fiscal_position_from_fiscal_type(new_fiscal_type)
+            elif vat:
 
-    def _determine_fiscal_type(self, partner, vat, is_dominican_partner):
-        not_digit_name = partner.name and isinstance(partner.name, str) and not partner.name.isdigit()
+                if vat.isdigit() and len(vat) == 9:
+                    if partner.name and 'MINISTERIO' in partner.name:
+                        partner.sale_fiscal_type_id = self._get_fiscal_type_domain('B15')
 
-        if not is_dominican_partner:
-            return self._get_fiscal_type_domain('B16')
+                    elif partner.name and any([n for n in ('IGLESIA', 'ZONA FRANCA') if n in partner.name]):
+                        partner.sale_fiscal_type_id = self._get_fiscal_type_domain('B14')
 
-        elif partner.parent_id:
-            return partner.parent_id.sale_fiscal_type_id
+                    else:
+                        partner.sale_fiscal_type_id = self._get_fiscal_type_domain('B01')
 
-        elif vat and \
-            isinstance(vat, str) and \
-            not partner.sale_fiscal_type_id and \
-            not_digit_name:
-            
-            return self._determine_fiscal_type_by_vat(partner, vat)
+                else:
+                    partner.sale_fiscal_type_id = self._get_fiscal_type_domain('B02')
 
-        elif is_dominican_partner and not partner.sale_fiscal_type_id and not_digit_name:
-            return self._get_fiscal_type_domain('B02')
-
-        else:
-            return partner.sale_fiscal_type_id
-
-    def _determine_fiscal_type_by_vat(self, partner, vat):
-        if vat.isdigit() and len(vat) == 9:
-            if 'MINISTERIO' in (partner.name or '').upper():
-                return self._get_fiscal_type_domain('B15')
-            if any(keyword in (partner.name or '').upper() for keyword in ('IGLESIA', 'ZONA FRANCA')):
-                return self._get_fiscal_type_domain('B14')
-            return self._get_fiscal_type_domain('B01')
-        return self._get_fiscal_type_domain('B02')
+            else:
+                partner.sale_fiscal_type_id = partner.sale_fiscal_type_id
 
     def _inverse_sale_fiscal_type_id(self):
-        for partner in self:
-            partner.sale_fiscal_type_id = partner.sale_fiscal_type_id
-            self.sudo().set_fiscal_position_from_fiscal_type(partner.sale_fiscal_type_id)
+        pass
 
     @api.model
     def get_sale_fiscal_type_id_selection(self):
@@ -112,29 +144,3 @@ class Partner(models.Model):
             "sale_fiscal_type_list": self.sale_fiscal_type_list,
             "sale_fiscal_type_vat": self.sale_fiscal_type_vat
         }
-
-    def set_fiscal_position_from_fiscal_type(self, fiscal_type):
-        if fiscal_type:
-            for company in self.env['res.company'].sudo().search([]):
-                company_new_fiscal_type = fiscal_type.with_company(company).sudo()
-
-                if company_new_fiscal_type.fiscal_position_id:
-                    self.with_company(company).sudo().write({
-                        'property_account_position_id': company_new_fiscal_type.fiscal_position_id.id
-                    })
-
-    sale_fiscal_type_list = [
-        {"id": "final", "name": "Consumo", "ticket_label": "Consumo", "is_default": True},
-        {"id": "fiscal", "name": "Crédito Fiscal"},
-        {"id": "gov", "name": "Gubernamental"},
-        {"id": "special", "name": "Regímenes Especiales"},
-        {"id": "unico", "name": "Único Ingreso"},
-        {"id": "export", "name": "Exportaciones"}
-    ]
-
-    sale_fiscal_type_vat = {
-        "rnc": ["fiscal", "gov", "special"],
-        "ced": ["final", "fiscal"],
-        "other": ["final"],
-        "no_vat": ["final", "unico", "export"]
-    }

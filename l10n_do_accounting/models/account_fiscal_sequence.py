@@ -32,14 +32,11 @@ class AccountFiscalSequence(models.Model):
     name = fields.Char(
         string="Authorization number",
         required=True,
-        readonly=True,
         states={"draft": [("readonly", False)]},
         tracking=True,
     )
     expiration_date = fields.Date(
-        string="Expiration Date",
         required=True,
-        readonly=True,
         states={"draft": [("readonly", False)]},
         tracking=True,
         default=datetime.strptime(
@@ -50,7 +47,6 @@ class AccountFiscalSequence(models.Model):
         string='Fiscal type',
         comodel_name="account.fiscal.type",
         required=True,
-        readonly=True,
         states={"draft": [("readonly", False)]},
         tracking=True,
     )
@@ -59,18 +55,14 @@ class AccountFiscalSequence(models.Model):
         store=True,
     )
     sequence_start = fields.Integer(
-        string="Start",
         required=True,
-        readonly=True,
         states={"draft": [("readonly", False)]},
         tracking=True,
         default=1,
         copy=False,
     )
     sequence_end = fields.Integer(
-        string="End",
         required=True,
-        readonly=True,
         states={"draft": [("readonly", False)]},
         tracking=True,
         default=1,
@@ -81,9 +73,7 @@ class AccountFiscalSequence(models.Model):
         compute="_compute_sequence_remaining",
     )
     sequence_id = fields.Many2one(
-        comodel_name="ir.sequence", 
-        string="Internal Sequence", 
-        copy=False,
+        "ir.sequence", string="Internal Sequence", copy=False,
     )
     warning_gap = fields.Integer(compute="_compute_warning_gap",)
     remaining_percentage = fields.Float(
@@ -97,11 +87,9 @@ class AccountFiscalSequence(models.Model):
         help="Next number of this sequence",
         related="sequence_id.number_next_actual",
     )
-    next_fiscal_number = fields.Char(
-        compute="_compute_next_fiscal_number",
-    )
+    next_fiscal_number = fields.Char(compute="_compute_next_fiscal_number",)
     state = fields.Selection(
-        selection=[
+        [
             ("draft", "Draft"),
             ("queue", "Queue"),
             ("active", "Active"),
@@ -113,14 +101,11 @@ class AccountFiscalSequence(models.Model):
         tracking=True,
         copy=False,
     )
-    can_be_queue = fields.Boolean(
-        compute="_compute_can_be_queue",
-    )
+    can_be_queue = fields.Boolean(compute="_compute_can_be_queue",)
     company_id = fields.Many2one(
-        comodel_name="res.company",
-        default=lambda self: self.env.company,
+        "res.company",
+        default=lambda self: self.env.user.company_id,
         readonly=True,
-        required=True,
         states={"draft": [("readonly", False)]},
         tracking=True,
     )
@@ -275,7 +260,7 @@ class AccountFiscalSequence(models.Model):
                 rec.state = "expired"
             else:
                 # Creates a new sequence of this Fiscal Sequence
-                sequence_id = self.env["ir.sequence"].sudo().create(
+                sequence_id = self.env["ir.sequence"].create(
                     {
                         "name": _("%s %s Sequence")
                         % (rec.fiscal_type_id.name, rec.name[-9:]),
@@ -314,9 +299,7 @@ class AccountFiscalSequence(models.Model):
             if rec.sequence_id:
                 # *-*-*-*-*- Remove this comment *-*-*-*-*-*
                 # Preserve internal sequence just for audit purpose.
-                rec.sequence_id.sudo().write({
-                    "active": False,
-                })
+                rec.sequence_id.active = False
 
     def action_queue(self):
         for rec in self:
@@ -423,13 +406,11 @@ class AccountFiscalType(models.Model):
     )
     fiscal_position_id = fields.Many2one(
         comodel_name="account.fiscal.position",
-        string="Fiscal Position",
-        company_dependent=True,
+        string="Fiscal Position"
     )
     journal_id = fields.Many2one(
         comodel_name="account.journal", 
-        string="Journal",
-        company_dependent=True,
+        string="Journal"
     )
     assigned_sequence = fields.Boolean(
         string="Assigned Sequence",
