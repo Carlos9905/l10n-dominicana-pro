@@ -68,7 +68,7 @@
                 <t t-call="l10n_do_accounting.fiscal_info"/>
             </t>
         </xpath>
-        <xpath expr="//li[@t-if='forced_vat']" position="after">
+        <!--<xpath expr="//li[@t-if='forced_vat']" position="after">
             <t t-if="l10n_do_fiscal_invoice">
                 <li t-if="not forced_vat and company.vat" class="first-page">
                     <strong>
@@ -79,7 +79,7 @@
                     <strong>Date:</strong> <span t-field="o.invoice_date"/>
                 </li>
             </t>
-        </xpath>
+        </xpath>-->
     </template>
 
     <template id="external_layout_boxed_inherited" inherit_id="web.external_layout_boxed">
