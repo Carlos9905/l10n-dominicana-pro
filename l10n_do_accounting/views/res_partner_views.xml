@@ -6,7 +6,7 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='vat']" position="replace">
                 <field name="is_fiscal_info_required" invisible="1"/>
-                <field name="vat" placeholder="e.g. BE0477472701" invisible="country_id == %(base.do)s or not country_id" readonly="parent_id"/>
+                <field name="vat" placeholder="e.g. BE0477472701" invisible="country_id == %(base.do)s" readonly="parent_id"/>
                 <field name="vat" placeholder="ej. NNNNNNNNN" string="RNC" readonly="parent_id" 
                        invisible="country_id != %(base.do)s or not is_company"
                        required="is_fiscal_info_required"/>
