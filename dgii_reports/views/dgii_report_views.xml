@@ -29,7 +29,7 @@
                             <field name="previous_balance" readonly="1"/>
                         </group>
                     </group>
-                    <div attrs="{'invisible': [('previous_report_pending', '=', False)]}">
+                    <div invisible="not previous_report_pending">
                         <field name="previous_report_pending" invisible="1"/>
                         <div class="alert alert-warning info_icon" role="alert">
                             <span class="fa fa-lightbulb-o fa-lg" title="Info" aria-label="Info"/>

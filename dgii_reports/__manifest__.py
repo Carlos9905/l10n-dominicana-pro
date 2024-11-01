@@ -26,7 +26,6 @@
     # always loaded
     'data': [
         'data/invoice_service_type_detail_data.xml',
-        'data/account_tax_data.xml',
         'data/action_server.xml',
         'security/ir.model.access.csv',
         'security/ir_rule.xml',
@@ -45,6 +44,6 @@
         ]
     },
 
-    'post_init_hook': 'update_taxes'
+    'post_init_hook': 'update_tax_records',
 
 }
