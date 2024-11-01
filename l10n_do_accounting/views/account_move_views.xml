@@ -6,7 +6,7 @@
         <field name="inherit_id" ref="account.view_move_form"/>
         <field name="arch" type="xml">
 
-            <xpath expr="//field[@name='id']" position="after">
+            <xpath expr="//field[@name='state']" position="after">
                 <!-- Invisible fields -->
                 <field name="fiscal_sequence_status" invisible="1"/>
                 <field name="is_debit_note" invisible="1"/>
