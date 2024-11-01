@@ -22,8 +22,6 @@
         "data/ir_config_parameters.xml",
         "data/ir_cron_data.xml",
         "data/account_fiscal_type_data.xml",
-        # "data/report_layout_data.xml",
-        # "data/mail_template_data.xml",
 
         "security/ir_rule.xml",
         "security/ir.model.access.csv",
@@ -32,7 +30,6 @@
         "wizard/account_fiscal_sequence_validate_wizard_views.xml",
         "wizard/account_invoice_refund_views.xml",
 
-        # "views/account_report.xml",
         "views/account_invoice_views.xml",
         "views/account_journal_views.xml",
         "views/res_partner_views.xml",
