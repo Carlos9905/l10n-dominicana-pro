@@ -3,6 +3,7 @@
 # © 2018 José López <jlopez@indexa.do>
 # © 2018 Gustavo Valverde <gustavo@iterativo.do>
 
+import os
 import calendar
 import base64
 from datetime import datetime as dt, timedelta
@@ -525,7 +526,11 @@ class DgiiReport(models.Model):
             str(company_vat), period, qty) + '\n'
         data = header + records
 
-        file_path = '/tmp/DGII_606_{}_{}.txt'.format(company_vat, period)
+        if not os.name == 'nt':
+            file_path = '/tmp/DGII_606_{}_{}.txt'.format(company_vat, period)
+        else:
+            file_path = 'C:/Temp/DGII_606_{}_{}.txt'.format(company_vat, period)
+        
         with open(file_path, 'w', encoding="utf-8", newline='\r\n') as txt_606:
             txt_606.write(str(data))
 
@@ -732,7 +737,11 @@ class DgiiReport(models.Model):
             str(company_vat), period, qty) + '\n'
         data = header + records
 
-        file_path = '/tmp/DGII_607_{}_{}.txt'.format(company_vat, period)
+        if not os.name == 'nt':
+            file_path = '/tmp/DGII_607_{}_{}.txt'.format(company_vat, period)
+        else:
+            file_path = 'C:/Temp/DGII_607_{}_{}.txt'.format(company_vat, period)
+
         with open(file_path, 'w', encoding="utf-8", newline='\r\n') as txt_607:
             txt_607.write(str(data))
 
@@ -867,7 +876,11 @@ class DgiiReport(models.Model):
             str(company_vat).ljust(11), period, qty) + '\n'
         data = header + records
 
-        file_path = '/tmp/DGII_608_{}_{}.txt'.format(company_vat, period)
+        if not os.name == 'nt':
+            file_path = '/tmp/DGII_608_{}_{}.txt'.format(company_vat, period)
+        else:
+            file_path = 'C:/Temp/DGII_608_{}_{}.txt'.format(company_vat, period)
+
         with open(file_path, 'w', encoding="utf-8", newline='\r\n') as txt_608:
             txt_608.write(str(data))
 
@@ -944,7 +957,11 @@ class DgiiReport(models.Model):
             str(company_vat).ljust(11), period, qty) + '\n'
         data = header + records
 
-        file_path = '/tmp/DGII_609_{}_{}.txt'.format(company_vat, period)
+        if not os.name == 'nt':
+            file_path = '/tmp/DGII_609_{}_{}.txt'.format(company_vat, period)
+        else:
+            file_path = 'C:/Temp/DGII_609_{}_{}.txt'.format(company_vat, period)
+            
         with open(file_path, 'w', encoding="utf-8", newline='\r\n') as txt_609:
             txt_609.write(str(data))
 

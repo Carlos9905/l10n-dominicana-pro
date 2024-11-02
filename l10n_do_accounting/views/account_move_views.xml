@@ -53,31 +53,35 @@
             <xpath expr="//field[@name='partner_id']" position="after">
 
                 <field name="fiscal_type_id" domain="[('id', 'in', available_fiscal_type_ids)]" 
-                    invisible="move_type not in ('in_invoice', 'out_invoice', 'in_refund', 'out_refund')" 
-                    required="is_l10n_do_fiscal_invoice == True"
+                    invisible="move_type not in ('in_invoice', 'out_invoice', 'in_refund', 'out_refund') or not is_l10n_do_fiscal_invoice" 
+                    required="is_l10n_do_fiscal_invoice"
                     readonly="state != 'draft'"/>
                 <field name="income_type" 
-                    invisible="move_type not in ('out_invoice', 'out_refund')"
-                    required="is_l10n_do_fiscal_invoice == True and move_type in ('out_invoice', 'out_refund')"
+                    invisible="move_type not in ('out_invoice', 'out_refund') or not is_l10n_do_fiscal_invoice" 
+                    required="is_l10n_do_fiscal_invoice and move_type in ('out_invoice', 'out_refund')"
                     readonly="state != 'draft'"/>
-                <field name="expense_type" 
-                    invisible="move_type not in ('in_invoice', 'in_refund')"
-                    required="is_l10n_do_fiscal_invoice == True and move_type in ('in_invoice', 'in_refund')"
+                <field name="expense_type"
+                    invisible="move_type not in ('in_invoice', 'in_refund') or not is_l10n_do_fiscal_invoice"
+                    required="is_l10n_do_fiscal_invoice and move_type in ('in_invoice', 'in_refund')"
                     readonly="state != 'draft'"/>
+
                 <field name="ref" string="NCF" readonly="1" 
-                    invisible="ref == False or assigned_sequence == False"/>
+                    invisible="not ref or not assigned_sequence"/>
                 <field name="ref" string="NCF" 
-                    invisible="assigned_sequence == True or fiscal_type_id == False"
-                    required="is_l10n_do_fiscal_invoice == True and assigned_sequence == False"
+                    invisible="assigned_sequence or not fiscal_type_id"
+                    required="is_l10n_do_fiscal_invoice and not assigned_sequence"
                     readonly="state != 'draft'"/>
+                
                 <field name="origin_out"
-                    invisible="move_type != 'out_invoice' or is_l10n_do_fiscal_invoice == False"
-                    required="is_l10n_do_fiscal_invoice == True and move_type == 'out_invoice'"
-                    readonly="state != 'draft'"/>    
+                    invisible="move_type not in ('out_refund', 'in_refund') or not is_l10n_do_fiscal_invoice"
+                    required="move_type in ['out_refund', 'in_refund'] and is_l10n_do_fiscal_invoice and is_debit_note"
+                    readonly="state != 'draft'"/>
+
                 <field name="ncf_expiration_date" readonly="1"
-                    invisible="assigned_sequence == False or fiscal_type_id == False"/> 
+                    invisible="not ncf_expiration_date or not assigned_sequence"/>
+
                 <field name="ncf_expiration_date" 
-                    invisible="assigned_sequence == True or fiscal_type_id == False"
+                    invisible="assigned_sequence or not fiscal_type_id"
                     readonly="state != 'draft'"/>
             </xpath>
 
