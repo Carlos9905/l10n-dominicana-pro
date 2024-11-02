@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Inherited PaymentScreen template in order to add button for adding and
+    showing payment reference.-->
+<templates id="template" xml:space="preserve">
+  <t t-inherit="point_of_sale.PaymentScreenButtons" t-inherit-mode="extension">
+      <xpath expr="//div[hasclass('payment-buttons')]" position="inside">
+          <button class="button js_invoice btn btn-light py-3 text-start rounded-0 border-bottom"
+                      t-att-class="{ 'highlight text-bg-primary': currentOrder.is_to_invoice() }"
+                      t-on-click="IsPaymentReferenceButton">
+                   <li class="info">
+                        <i class="fa fa-edit"/>
+                        Crédito Fiscal
+                    </li>
+            </button>
+      </xpath>
+  </t>
+</templates>

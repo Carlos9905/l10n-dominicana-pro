@@ -19,9 +19,8 @@
         'views/pos_payment_method_views.xml',
     ],
     'assets': {
-        'point_of_sale.assets': [
-            'l10n_do_pos/static/src/scss/*',
-            'l10n_do_pos/static/src/js/**/*.js',
+        'point_of_sale._assets_pos': [
+            #'l10n_do_pos/static/src/js/**/*.js',
             'l10n_do_pos/static/src/xml/**/*.xml',
         ],
     },
