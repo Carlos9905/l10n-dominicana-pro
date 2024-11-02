@@ -20,7 +20,7 @@
     ],
     'assets': {
         'point_of_sale._assets_pos': [
-            #'l10n_do_pos/static/src/js/**/*.js',
+            'l10n_do_pos/static/src/js/**/*.js',
             'l10n_do_pos/static/src/xml/**/*.xml',
         ],
     },
