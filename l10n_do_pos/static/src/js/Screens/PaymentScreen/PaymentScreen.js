@@ -12,9 +12,7 @@ patch(PaymentScreen.prototype, {
     setup() {
         super.setup();
         this.popup = useService("popup");
-        this.state = useState({
-            code: false,
-        });
+        this.rpc = useService("rpc"); 
     },
 
     get currentOrder() {
@@ -99,14 +97,4 @@ patch(PaymentScreen.prototype, {
             } 
         }
     }
-
-//    async _finalizeValidation() {
-//         await super._finalizeValidation(...arguments);
-//         await this.env.services.rpc("/web/dataset/call_kw/pos.payment/get_payment_reference", {
-//             model: 'pos.payment',
-//             method: 'get_payment_reference',
-//             args: [[],order_list],
-//             kwargs: {}
-//         });
-//    }
 });
