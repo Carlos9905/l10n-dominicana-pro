@@ -35,6 +35,7 @@
         'views/account_invoice_views.xml',
         'views/dgii_report_views.xml',
         'views/account_tax_views.xml',
+        'views/dgii_reports_template.xml',
         'wizard/dgii_report_regenerate_wizard_views.xml',
     ],
 

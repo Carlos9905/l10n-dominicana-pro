@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <template id="dgii_reports_widget_template">
+        <t t-name="dgii_reports.DgiiReportsUrlWidget">
+            <a t-att-href="'dgii_reports/' + props.value" target="_blank">
+                <t t-esc="props.value" />
+            </a>
+        </t>
+    </template>
+</odoo>

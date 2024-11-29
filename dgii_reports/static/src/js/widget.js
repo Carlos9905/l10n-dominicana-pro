@@ -9,20 +9,20 @@ class DgiiReportsUrlWidget extends Component {
     static props = { ...standardFieldProps };
 
     setup() {
-        super.setup();
         this.action = useService("action");
     }
 
-    async openDgiiReport(ev) {
+    async openDgiiReport() {
         this.action.doAction({
             type: "ir.actions.act_url",
-            url: "dgii_reports/" + this.props.value,
+            url: "/dgii_reports/" + this.props.value,
             target: "_blank",
         });
     }
 }
 
 DgiiReportsUrlWidget.template = "dgii_reports.DgiiReportsUrlWidget";
+
 registry.category("fields").add("dgii_reports_url", {
     component: DgiiReportsUrlWidget,
 });
