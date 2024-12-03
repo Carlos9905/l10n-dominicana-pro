@@ -39,13 +39,6 @@
         'wizard/dgii_report_regenerate_wizard_views.xml',
     ],
 
-    'assets':{
-        'web.assets_backend': [
-            '/dgii_reports/static/src/scss/dgii_reports.scss',
-            '/dgii_reports/static/src/js/widget.js'
-        ]
-    },
-
     #'post_init_hook': 'update_taxes',
     #'post_update_hook': 'update_taxes',
 
