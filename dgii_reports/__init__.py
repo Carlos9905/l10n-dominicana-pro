@@ -19,7 +19,7 @@ def update_taxes(cr, registry):
         tax_ids = env['ir.model.data'].search([
             ('model', '=', 'account.tax'),
             ('module', '=', 'l10n_do'),
-            ('name', 'like', '%_' + tax_template_id.name), 
+            ('name', 'like', '%_' + str(tax_template_id.name)), 
         ])
         
         taxes = env['account.tax'].browse(tax_ids.mapped('res_id')) if tax_ids else False
